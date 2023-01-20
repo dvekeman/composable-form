@@ -51,10 +51,16 @@ import Form.Base.SelectField as SelectField
 import Form.Base.TextField as TextField
 import Form.Error as Error exposing (Error)
 import Html exposing (Html)
-import Html.Attributes as Attributes
+import Html.Attributes as Attributes exposing (attribute)
 import Html.Events as Events
 import Json.Decode
 import Set exposing (Set)
+
+
+{-| Html ID
+-}
+type FieldId
+    = Id String
 
 
 {-| This type gathers the values of the form, with some exposed state and internal view state that
@@ -219,6 +225,8 @@ type alias TextFieldConfig msg =
     , error : Maybe Error
     , showError : Bool
     , attributes : TextField.Attributes
+
+    -- , id : Maybe FieldId
     }
 
 
@@ -688,7 +696,7 @@ formList { forms, label, add, disabled } =
                     Html.text ""
     in
     Html.div [ Attributes.class "elm-form-list" ]
-        (fieldLabel label
+        (fieldLabel Nothing label
             :: (forms ++ [ addButton ])
         )
 
@@ -752,6 +760,13 @@ form { onSubmit, action, loading, state, fields } =
 
 inputField : String -> TextFieldConfig msg -> Html msg
 inputField type_ { onChange, onBlur, disabled, value, error, showError, attributes } =
+    let
+        -- Extract the Html 'id' attribute
+        fieldId =
+            List.head <|
+                List.map (\( _, idValue ) -> Id idValue) <|
+                    List.filter (\( fname, _ ) -> fname == "id") attributes.htmlAttributes
+    in
     Html.input
         ([ Events.onInput onChange
          , Attributes.disabled disabled
@@ -763,11 +778,18 @@ inputField type_ { onChange, onBlur, disabled, value, error, showError, attribut
             |> withHtmlAttributes attributes.htmlAttributes
         )
         []
-        |> withLabelAndError attributes.label showError error
+        |> withLabelAndError fieldId attributes.label showError error
 
 
 textareaField : TextFieldConfig msg -> Html msg
 textareaField { onChange, onBlur, disabled, value, error, showError, attributes } =
+    let
+        -- Extract the Html 'id' attribute
+        fieldId =
+            List.head <|
+                List.map (\( _, idValue ) -> Id idValue) <|
+                    List.filter (\( fname, _ ) -> fname == "id") attributes.htmlAttributes
+    in
     Html.textarea
         ([ Events.onInput onChange
          , Attributes.disabled disabled
@@ -778,11 +800,18 @@ textareaField { onChange, onBlur, disabled, value, error, showError, attributes 
             |> withHtmlAttributes attributes.htmlAttributes
         )
         []
-        |> withLabelAndError attributes.label showError error
+        |> withLabelAndError fieldId attributes.label showError error
 
 
 numberField : NumberFieldConfig msg -> Html msg
 numberField { onChange, onBlur, disabled, value, error, showError, attributes } =
+    let
+        -- Extract the Html 'id' attribute
+        fieldId =
+            List.head <|
+                List.map (\( _, idValue ) -> Id idValue) <|
+                    List.filter (\( fname, _ ) -> fname == "id") attributes.htmlAttributes
+    in
     let
         stepAttr =
             attributes.step
@@ -803,11 +832,18 @@ numberField { onChange, onBlur, disabled, value, error, showError, attributes } 
             |> withHtmlAttributes attributes.htmlAttributes
         )
         []
-        |> withLabelAndError attributes.label showError error
+        |> withLabelAndError fieldId attributes.label showError error
 
 
 rangeField : RangeFieldConfig msg -> Html msg
 rangeField { onChange, onBlur, disabled, value, error, showError, attributes } =
+    let
+        -- Extract the Html 'id' attribute
+        fieldId =
+            List.head <|
+                List.map (\( _, idValue ) -> Id idValue) <|
+                    List.filter (\( fname, _ ) -> fname == "id") attributes.htmlAttributes
+    in
     Html.div
         [ Attributes.class "elm-form-range-field" ]
         [ Html.input
@@ -825,7 +861,7 @@ rangeField { onChange, onBlur, disabled, value, error, showError, attributes } =
             []
         , Html.span [] [ Html.text (value |> Maybe.map String.fromFloat |> Maybe.withDefault "") ]
         ]
-        |> withLabelAndError attributes.label showError error
+        |> withLabelAndError fieldId attributes.label showError error
 
 
 checkboxField : CheckboxFieldConfig msg -> Html msg
@@ -867,9 +903,15 @@ radioField { onChange, onBlur, disabled, value, error, showError, attributes } =
                     []
                 , Html.text label
                 ]
+
+        -- Extract the Html 'id' attribute
+        fieldId =
+            List.head <|
+                List.map (\( _, idValue ) -> Id idValue) <|
+                    List.filter (\( fname, _ ) -> fname == "id") attributes.htmlAttributes
     in
     Html.div (fieldContainerAttributes showError error)
-        ((fieldLabel attributes.label
+        ((fieldLabel fieldId attributes.label
             :: List.map radio attributes.options
          )
             ++ [ maybeErrorMessage showError error ]
@@ -892,6 +934,12 @@ selectField { onChange, onBlur, disabled, value, error, showError, attributes } 
                 , Attributes.selected (value == "")
                 ]
                 [ Html.text ("-- " ++ attributes.placeholder ++ " --") ]
+
+        -- Extract the Html 'id' attribute
+        fieldId =
+            List.head <|
+                List.map (\( _, idValue ) -> Id idValue) <|
+                    List.filter (\( fname, _ ) -> fname == "id") attributes.htmlAttributes
     in
     Html.select
         ([ Events.on "change" (Json.Decode.map onChange Events.targetValue)
@@ -901,7 +949,7 @@ selectField { onChange, onBlur, disabled, value, error, showError, attributes } 
             |> withHtmlAttributes attributes.htmlAttributes
         )
         (placeholderOption :: List.map toOption attributes.options)
-        |> withLabelAndError attributes.label showError error
+        |> withLabelAndError fieldId attributes.label showError error
 
 
 group : List (Html msg) -> Html msg
@@ -931,18 +979,28 @@ fieldContainerAttributes showError error =
     ]
 
 
-withLabelAndError : String -> Bool -> Maybe Error -> Html msg -> Html msg
-withLabelAndError label showError error fieldAsHtml =
-    [ fieldLabel label
+withLabelAndError : Maybe FieldId -> String -> Bool -> Maybe Error -> Html msg -> Html msg
+withLabelAndError labelFor label showError error fieldAsHtml =
+    [ fieldLabel labelFor label
     , fieldAsHtml
     , maybeErrorMessage showError error
     ]
         |> wrapInFieldContainer showError error
 
 
-fieldLabel : String -> Html msg
-fieldLabel label =
-    Html.div [ Attributes.class "elm-form-label" ] [ Html.text label ]
+fieldLabel : Maybe FieldId -> String -> Html msg
+fieldLabel mLabelFor label =
+    Html.div
+        (Attributes.class "elm-form-label"
+            :: (case mLabelFor of
+                    Nothing ->
+                        []
+
+                    Just (Id labelFor) ->
+                        [ Attributes.for labelFor ]
+               )
+        )
+        [ Html.text label ]
 
 
 maybeErrorMessage : Bool -> Maybe Error -> Html msg

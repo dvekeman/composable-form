@@ -1,5 +1,5 @@
 module Form exposing
-    ( Form
+    ( Form, FieldId
     , textField, emailField, passwordField, textareaField, numberField, rangeField, checkboxField
     , radioField, selectField
     , succeed, append, optional, disable, group, section, andThen, meta, list
@@ -83,7 +83,6 @@ type alias Form values output =
 
 
 -- Fields
-
 
 {-| Create a form that contains a single text field.
 
@@ -775,6 +774,10 @@ type Field values
     | Group (List (FilledField values))
     | Section String (List (FilledField values))
     | List (FormList values (Field values))
+
+{- Html ID -}
+type FieldId = Id String
+
 
 
 {-| Represents a type of text field
