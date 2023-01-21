@@ -1,10 +1,12 @@
 module Form exposing
-    ( Form, FieldId
+    ( Form
     , textField, emailField, passwordField, textareaField, numberField, rangeField, checkboxField
     , radioField, selectField
     , succeed, append, optional, disable, group, section, andThen, meta, list
     , map, mapValues
     , Field(..), TextType(..), FilledField, fill
+    ,  FieldId
+
     )
 
 {-| Build [composable forms](#Form) comprised of [fields](#fields).
@@ -83,6 +85,7 @@ type alias Form values output =
 
 
 -- Fields
+
 
 {-| Create a form that contains a single text field.
 
@@ -775,9 +778,13 @@ type Field values
     | Section String (List (FilledField values))
     | List (FormList values (Field values))
 
-{- Html ID -}
-type FieldId = Id String
 
+
+{- Html ID -}
+
+
+type FieldId
+    = Id String
 
 
 {-| Represents a type of text field

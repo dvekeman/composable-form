@@ -743,15 +743,21 @@ form { onSubmit, action, loading, state, fields } =
 
                     _ ->
                         Html.text ""
-              , Html.button
-                    [ Attributes.type_ "submit"
-                    , Attributes.disabled (onSubmit == Nothing)
-                    ]
-                    [ if state == Loading then
-                        Html.text loading
+              , Html.div [ Attributes.class "elm-form-buttons-wrapper" ]
+                    [ Html.div [ Attributes.class "elm-form-button-label" ] []
+                    , Html.div [ Attributes.class "elm-form-button-wrapper" ]
+                        [ Html.button
+                            [ Attributes.type_ "submit"
+                            , Attributes.class "elm-form-button"
+                            , Attributes.disabled (onSubmit == Nothing)
+                            ]
+                            [ if state == Loading then
+                                Html.text loading
 
-                      else
-                        Html.text action
+                              else
+                                Html.text action
+                            ]
+                        ]
                     ]
               ]
             ]
@@ -763,22 +769,31 @@ inputField type_ { onChange, onBlur, disabled, value, error, showError, attribut
     let
         -- Extract the Html 'id' attribute
         fieldId =
-            List.head <|
-                List.map (\( _, idValue ) -> Id idValue) <|
-                    List.filter (\( fname, _ ) -> fname == "id") attributes.htmlAttributes
+            Debug.log "fieldId" <|
+                List.head <|
+                    List.map (\( _, idValue ) -> Id idValue) <|
+                        List.filter (\( fname, _ ) -> fname == "id") attributes.htmlAttributes
     in
-    Html.input
-        ([ Events.onInput onChange
-         , Attributes.disabled disabled
-         , Attributes.value value
-         , Attributes.placeholder attributes.placeholder
-         , Attributes.type_ type_
-         ]
-            |> withMaybeAttribute Events.onBlur onBlur
-            |> withHtmlAttributes attributes.htmlAttributes
-        )
-        []
-        |> withLabelAndError fieldId attributes.label showError error
+    Html.div
+        [ Attributes.class "elm-form-input-wrapper"
+        ]
+        [ Html.div [ Attributes.class "elm-form-wrapper-label" ] [ fieldLabel fieldId attributes.label ]
+        , Html.input
+            ([ Events.onInput onChange
+             , Attributes.disabled disabled
+             , Attributes.value value
+             , Attributes.placeholder attributes.placeholder
+             , Attributes.type_ type_
+             , Attributes.class "elm-form-input"
+             ]
+                |> withMaybeAttribute Events.onBlur onBlur
+                |> withHtmlAttributes attributes.htmlAttributes
+            )
+            []
+        , Html.div [ Attributes.class "elm-form-wrapper-error" ] [ maybeErrorMessage showError error ]
+
+        -- |> withLabelAndError fieldId attributes.label showError error
+        ]
 
 
 textareaField : TextFieldConfig msg -> Html msg
@@ -967,7 +982,7 @@ section title fields =
 
 wrapInFieldContainer : Bool -> Maybe Error -> List (Html msg) -> Html msg
 wrapInFieldContainer showError error =
-    Html.label (fieldContainerAttributes showError error)
+    Html.div (fieldContainerAttributes showError error)
 
 
 fieldContainerAttributes : Bool -> Maybe Error -> List (Html.Attribute msg)
@@ -981,16 +996,24 @@ fieldContainerAttributes showError error =
 
 withLabelAndError : Maybe FieldId -> String -> Bool -> Maybe Error -> Html msg -> Html msg
 withLabelAndError labelFor label showError error fieldAsHtml =
-    [ fieldLabel labelFor label
-    , fieldAsHtml
-    , maybeErrorMessage showError error
-    ]
-        |> wrapInFieldContainer showError error
+    Html.div (fieldContainerAttributes showError error)
+        [ Html.div [ Attributes.class "elm-form-wrapper-label" ] [ fieldLabel labelFor label ]
+        , Html.div [ Attributes.class "elm-form-wrapper-input" ] [ fieldAsHtml ]
+        , Html.div [ Attributes.class "elm-form-wrapper-error" ] [ maybeErrorMessage showError error ]
+        ]
+
+
+
+-- [ fieldLabel labelFor label
+-- , fieldAsHtml
+-- , maybeErrorMessage showError error
+-- ]
+--     |> wrapInFieldContainer showError error
 
 
 fieldLabel : Maybe FieldId -> String -> Html msg
 fieldLabel mLabelFor label =
-    Html.div
+    Html.label
         (Attributes.class "elm-form-label"
             :: (case mLabelFor of
                     Nothing ->
