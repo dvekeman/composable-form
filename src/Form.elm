@@ -6,7 +6,6 @@ module Form exposing
     , map, mapValues
     , Field(..), TextType(..), FilledField, fill
     ,  FieldId
-
     )
 
 {-| Build [composable forms](#Form) comprised of [fields](#fields).

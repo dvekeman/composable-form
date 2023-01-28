@@ -790,7 +790,10 @@ inputField type_ { onChange, onBlur, disabled, value, error, showError, attribut
                 |> withHtmlAttributes attributes.htmlAttributes
             )
             []
-        , Html.div [ Attributes.class "elm-form-wrapper-error" ] [ maybeErrorMessage showError error ]
+        , Html.p
+            [ Attributes.class "elm-form-wrapper-error"
+            ]
+            [ maybeErrorMessage showError error ]
 
         -- |> withLabelAndError fieldId attributes.label showError error
         ]
@@ -1057,7 +1060,7 @@ errorToString : Error -> String
 errorToString error =
     case error of
         Error.RequiredFieldIsEmpty ->
-            "This field is required"
+            "Het veld is verplicht"
 
         Error.ValidationFailed validationError ->
             validationError

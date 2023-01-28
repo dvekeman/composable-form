@@ -194,7 +194,7 @@ errorToString : Error -> String
 errorToString error =
     case error of
         Error.RequiredFieldIsEmpty ->
-            "This field is required"
+            "(*)"
 
         Error.ValidationFailed validationError ->
             validationError
