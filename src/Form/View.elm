@@ -769,7 +769,6 @@ inputField type_ { onChange, onBlur, disabled, value, error, showError, attribut
     let
         -- Extract the Html 'id' attribute
         fieldId =
-            Debug.log "fieldId" <|
                 List.head <|
                     List.map (\( _, idValue ) -> Id idValue) <|
                         List.filter (\( fname, _ ) -> fname == "id") attributes.htmlAttributes
